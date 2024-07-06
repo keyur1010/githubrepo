@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service and Industry</title>
+  <style>
+    .container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-container, .table-container {
+      width: 48%;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-container">
+      <h1 id="formTitle">Add a New Service</h1>
+      <form id="serviceForm" action="/services" method="POST" onsubmit="return validateForm()">
+        <div>
+          <label for="service_name">Service Name:</label>
+          <input type="text" id="service_name" name="service_name" required>
+        </div>
+        <div>
+          <label for="industries">Industries:</label>
+          <select id="industries" name="industry_ids" multiple required>
+            <% industries.forEach(industry => { %>
+              <option value="<%= industry.id %>"><%= industry.industry_name %></option>
+            <% }); %>
+          </select>
+        </div>
+        <button type="submit" id="submitButton">Add Service</button>
+        <button type="button" class="hidden" id="cancelButton" onclick="cancelEdit()">Cancel</button>
+      </form>
+    </div>
+
+    <div class="table-container">
+      <h1>Saved Services</h1>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Service Name</th>
+            <th>Industries</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% services.forEach(service => { %>
+            <tr>
+              <td><%= service.service_name %></td>
+              <td><%= service.Industries ? service.Industries.map(industry => industry.industry_name).join(', ') : '' %></td>
+              <td>
+                <button onclick='showEditForm("<%= service.id %>", "<%= service.service_name %>", <%= JSON.stringify(service.Industries.map(i => i.id)) %>)'>Edit</button>
+                <form action="/services/<%= service.id %>?_method=DELETE" method="POST" style="display:inline;">
+                  <button type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function showEditForm(id, name, industryIds) {
+      document.getElementById('formTitle').innerText = 'Edit Service';
+      document.getElementById('submitButton').innerText = 'Save Changes';
+      document.getElementById('cancelButton').classList.remove('hidden');
+
+      var serviceForm = document.getElementById('serviceForm');
+      serviceForm.action = '/services/' + id + '?_method=PUT';
+      document.getElementById('service_name').value = name;
+
+      var industries = document.getElementById('industries');
+      for (var i = 0; i < industries.options.length; i++) {
+        industries.options[i].selected = industryIds.includes(parseInt(industries.options[i].value));
+      }
+      $('.selectpicker').selectpicker('refresh');
+      $('.industries').selectpicker('refresh');
+      
+    }
+
+    function cancelEdit() {
+      document.getElementById('formTitle').innerText = 'Add a New Service';
+      document.getElementById('submitButton').innerText = 'Add Service';
+      document.getElementById('cancelButton').classList.add('hidden');
+
+      var serviceForm = document.getElementById('serviceForm');
+      serviceForm.action = '/services';
+      document.getElementById('service_name').value = '';
+
+      var industries = document.getElementById('industries');
+      for (var i = 0; i < industries.options.length; i++) {
+        industries.options[i].selected = false;
+      }
+    }
+
+    function validateForm() {
+      var serviceName = document.getElementById('service_name').value.trim();
+      var industries = document.getElementById('industries');
+      var selectedIndustries = Array.from(industries.options).filter(option => option.selected);
+
+      if (serviceName === '') {
+        alert('Service name cannot be empty.');
+        return false;
+      }
+
+      if (selectedIndustries.length === 0) {
+        alert('At least one industry must be selected.');
+        return false;
+      }
+
+      return true;
+    }
+  </script>
+</body>
+</html>

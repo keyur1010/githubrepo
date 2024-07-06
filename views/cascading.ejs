@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cascading Dropdowns</title>
+  <style>
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .dropdown-container {
+      margin-bottom: 20px;
+    }
+  </style>
+  <script>
+    async function updateServices() {
+      const industryId = document.getElementById('industry').value;
+      const response = await fetch(`/services/by-industry/${industryId}`);
+      const services = await response.json();
+
+      const serviceDropdown = document.getElementById('service');
+      serviceDropdown.innerHTML = '<option value="">Select Service</option>';
+      services.forEach(service => {
+        const option = document.createElement('option');
+        option.value = service.id;
+        option.textContent = service.service_name;
+        serviceDropdown.appendChild(option);
+      });
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="dropdown-container">
+      <label for="industry">Select Industry:</label>
+      <select id="industry" name="industry" onchange="updateServices()">
+        <option value="">Select Industry</option>
+        <% industries.forEach(industry => { %>
+          <option value="<%= industry.id %>"><%= industry.industry_name %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="dropdown-container">
+      <label for="service">Select Service:</label>
+      <select id="service" name="service">
+        <option value="">Select Service</option>
+      </select>
+    </div>
+  </div>
+</body>
+</html>
